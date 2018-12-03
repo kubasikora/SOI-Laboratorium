@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
         perror("Utworzenie segmentu pamieci wspoldzielonej bufora specjalnego");
         exit(1);
     }
-    buf_pri = (int*)shmat(shmid, NULL, 0);
+    buf_pri = (int*)shmat(shmid_pri, NULL, 0);
     if (buf_pri == NULL){
         perror("Przylaczenie segmentu pamieci wspoldzielonej bufora specjalnego");
         exit(1);
@@ -79,14 +79,13 @@ int main(int argc, char *argv[]){
     }
 
     while(1){
-        
         decrease(semid, 4); 
         if(semctl(semid, 3, GETVAL) != 0){
             decrease(semid, 3);
             time_t t = time(NULL);
             struct tm tm = *localtime(&t);
             printf("%4d-%2d-%2d %2d:%2d:%2d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
-            printf(" %5d\n", buf[indexOpri]);
+            printf(" %5d\n", buf_pri[indexOpri]);
             indexOpri = (indexOpri+1)%MAX;
             increase(semid, 2);
             increase(semid, 4);

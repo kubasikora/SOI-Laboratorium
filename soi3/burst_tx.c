@@ -33,7 +33,7 @@ int main(int argc, char *argv[]){
         perror("Utworzenie segmentu pamieci wspoldzielonej bufora specjalnego");
         exit(1);
     }
-    buf_pri = (int*)shmat(shmid, NULL, 0);
+    buf_pri = (int*)shmat(shmid_pri, NULL, 0);
     if (buf_pri == NULL){
         perror("Przylaczenie segmentu pamieci wspoldzielonej bufora specjalnego");
         exit(1);
