@@ -107,6 +107,7 @@ int main(int argc, char *argv[]){
             }
             else {
                 increase(semid, 4);
+                printf("Brak wiadomości w buforze.\n");
                 sleep(1);
             }
         }

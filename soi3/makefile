@@ -58,4 +58,4 @@ semaphores.o: semaphores.c
 	$(CC) -c semaphores.c -o semaphores.o
 
 clean:
-	rm -rf *.o rx tx spamtx bursttx px spampx burstpx 
+	rm -rf *.o rx tx spamtx bursttx px spampx burstpx *.out *.log *.fls *.fdb_latexmk *.aux *.toc *.synctex.gz

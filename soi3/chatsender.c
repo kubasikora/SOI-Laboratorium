@@ -2,6 +2,7 @@
 #include<stdlib.h>
 #include<unistd.h>
 #include<string.h>
+#include<time.h>
 
 #include<sys/types.h>
 #include<sys/ipc.h>
@@ -76,14 +77,17 @@ int main(int argc, char *argv[]){
             exit(1);
         }
     }
-    for (i=0; i<10; i++){
+    for (i=0; i<5; i++){
         decrease(semid, 0);
         decrease(semid, 4);
         buf[indexZ] = arg;
         indexZ = (indexZ+1)%MAX;
         increase(semid, 1);
         increase(semid, 4);
-        printf("%d. Wysłałem wiadomość: %d\n", i, arg);
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+        printf("%4d-%2d-%2d %2d:%2d:%2d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+        printf(": %d. Wysłano: %d\n", i, arg);
         sleep(2);
     }
 }
