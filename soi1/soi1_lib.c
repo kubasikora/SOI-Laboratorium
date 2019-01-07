@@ -8,5 +8,4 @@ int add_nr_to_pid(int arg){
   message input;
   input.m2_l2 = arg;
   return _syscall(MM, 70, &input);
-}
-
+} 

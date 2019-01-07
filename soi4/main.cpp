@@ -20,7 +20,12 @@ void *producer(void *num){
     long tid = (long)num;
     for(int i = 0; i < 100; i++){
         sprintf(msg_content, "Message number %d from %d thread ", i, (int*)num);
-        new_msg = new Message(msg_content);
+        try{
+            new_msg = new Message(msg_content);
+        } catch(std::bad_alloc& ba){
+            std::cout << "Bad alloc from producer " << num << std::endl;
+            exit(1);
+        }
         mb->push(new_msg);
 
         sleep(1);
@@ -32,8 +37,13 @@ void *privileged_producer(void *num){
     char msg_content[128];
     long tid = (long)num;
     for(int i = 0; i < 100; i++){
-        sprintf(msg_content, "Priority message number %d from producer %d", i, (int*)num);
-        new_msg = new Message(msg_content);
+        sprintf(msg_content, "Priority message number %d from producer %d", i,(int*)num);
+        try{
+            new_msg = new Message(msg_content);
+        } catch(std::bad_alloc& ba){
+            std::cout << "Bad alloc from producer " << num << std::endl;
+            exit(1);
+        }
         mb->push_pri(new_msg);
 
         sleep(2);
@@ -51,6 +61,10 @@ int main(int argc, char** argv){
         std::cout << "1. Problem pelnego bufora" << std::endl;
         std::cout << "2. Problem pustego bufora" << std::endl;
         std::cout << "3. Problem wiadomosci priorytetowych" << std::endl;
+        std::cout << "4. Problem zachowania kolejnosci wiadomosci priorytetowych" << std::endl;
+        std::cout << "5. Problem pelnego bufora wiadomosci priorytetowych" << std::endl;
+        std::cout << "6. Problem pustego bufora wiadomosci priorytetowych" << std::endl;
+        std::cout << "7. Zapelnienie bufora po polowie wiadomosciami roznego typu" << std::endl;
         exit(0);
     }
 
@@ -124,43 +138,105 @@ int main(int argc, char** argv){
         pthread_join(cons, NULL);
     }
     if(*argv[1] == '4'){
-        int num = 0;
-        char msg_content[128];
-        Message* new_msg;
+        pthread_t cons, pri0, pri1, pri2, pri3;
 
-        sprintf(msg_content, "Message from %d thread", (int*)0);
-        new_msg = new Message(msg_content);
-        mb->push(new_msg);
-
-        sprintf(msg_content, "Message from %d thread", (int*)1);
-        new_msg = new Message(msg_content);
-        mb->push(new_msg);
-
-        sprintf(msg_content, "Message from %d thread", (int*)2);
-        new_msg = new Message(msg_content);
-        mb->push(new_msg);
-
-        sprintf(msg_content, "Priority message from producer %d", (int*)1000);
-        new_msg = new Message(msg_content);
-        mb->push_pri(new_msg);
-
-        sprintf(msg_content, "Message from %d thread", (int*)3);
-        new_msg = new Message(msg_content);
-        mb->push(new_msg);
-
-        sprintf(msg_content, "Priority message from producer %d", (int*)1001);
-        new_msg = new Message(msg_content);
-        mb->push_pri(new_msg);
+        pthread_create(&pri0, NULL, privileged_producer, (void*)1000L);
+        usleep(100000);
         
-        mb->pop();
-        mb->pop();
-        mb->pop();
-        mb->pop();
+        pthread_create(&pri1, NULL, privileged_producer, (void*)1001L);
+        usleep(100000);
+        
+        pthread_create(&pri2, NULL, privileged_producer, (void*)1002L);
+        usleep(100000);
+
+        pthread_create(&pri3, NULL, privileged_producer, (void*)1003L);
+        usleep(1000000);
+
+        pthread_create(&cons, NULL, consumer, &mb);
+        usleep(100000);
+
+
+        pthread_join(cons, NULL);
 
     }
 
+    if(*argv[1] == '5'){
+        pthread_t pri0, pri1, pri2, pri3, pri4;
+        
+        pthread_create(&pri0, NULL, privileged_producer, (void*)0L);
+        usleep(100000);
 
+        pthread_create(&pri1, NULL, privileged_producer, (void*)1L);
+        usleep(100000);
 
+        pthread_create(&pri2, NULL, privileged_producer, (void*)2L);
+        usleep(100000);
+
+        pthread_create(&pri3, NULL, privileged_producer, (void*)3L);
+        usleep(100000);
+
+        pthread_create(&pri4, NULL, privileged_producer, (void*)4L);
+        
+        pthread_join(pri0, NULL);
+    }
+
+    if(*argv[1] == '6'){
+        pthread_t cons0, cons1;
+        
+        Message *new_msg;
+        char msg_content[128] = "Priority message number 0 from producer 1000";
+        try{
+            new_msg = new Message(msg_content);
+        } catch(std::bad_alloc& ba){
+            std::cout << "Bad alloc from producer 0" << std::endl;
+            exit(1);
+        }
+        mb->push_pri(new_msg);
+        sleep(2);
+
+        pthread_create(&cons0, NULL, consumer, (void*)0L);
+        usleep(100000);
+        pthread_create(&cons1, NULL, consumer, (void*)1L);
+        
+        pthread_join(cons1, NULL);
+    }
+    
+    if(*argv[1] == '7'){
+        pthread_t pri0, prod0, cons0;
+        char msg_content[128];
+        Message *new_msg;
+
+        for(int i = 0; i < 10; i++){
+            sprintf(msg_content, "Message number %d from producer %d", i, 0);  
+            try{
+                new_msg = new Message(msg_content);
+            } catch(std::bad_alloc& ba){
+                std::cout << "Bad alloc from producer 0" << std::endl;
+                exit(1);
+            }
+            mb->push(new_msg);
+        }
+
+        for(int i = 0; i < 10; i++){
+            sprintf(msg_content, "Priority message number %d from producer %d", i, 0);  
+            try{
+                new_msg = new Message(msg_content);
+            } catch(std::bad_alloc& ba){
+                std::cout << "Bad alloc from producer 0" << std::endl;
+                exit(1);
+            }
+            mb->push_pri(new_msg);
+        }
+        sleep(2);
+
+        pthread_create(&cons0, NULL, consumer, (void*)0L);
+        usleep(100000);
+        pthread_create(&prod0, NULL, privileged_producer, (void*)1000L);
+        usleep(100000);
+        pthread_create(&pri0, NULL, producer, (void*)1L);
+        
+        pthread_join(cons0, NULL);
+    }
 
     return 0;
 }

@@ -29,7 +29,7 @@ Message* MessageBuffer::pop() {
     buffer_occupancy--;
 
     std::time_t result = std::time(nullptr);
-    std::cout << "RX " << result << ": " << tmp->text << std::endl;
+    std::cout << "\033[1;31m" << "RX " << result << ": " << tmp->text << "\033[0m" <<std::endl;
     delete tmp;
     
     signal(prod);
