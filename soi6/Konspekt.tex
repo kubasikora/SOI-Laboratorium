@@ -1,0 +1,214 @@
+\documentclass{mwrep}
+
+% Polskie znaki
+\usepackage{polski}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{indentfirst}
+
+% Strona tytułowa
+\usepackage{pgfplots}
+\usepackage{siunitx}
+\usepackage{paracol}
+
+% Pływające obrazki
+\usepackage{float}
+\usepackage{svg}
+\usepackage{graphicx}
+
+% table of contents refs
+\usepackage{hyperref}
+\usepackage{cleveref}
+\usepackage{booktabs}
+\usepackage{listings}
+
+
+\SendSettingsToPgf
+\title{\bf System plików \\ Konspekt rozwiązania \vskip 0.1cm}
+\author{Jakub Sikora}
+\date{\today}
+\pgfplotsset{compat=1.15}	
+\begin{document}
+
+\makeatletter
+\renewcommand{\maketitle}{\begin{titlepage}
+		\begin{center}{
+				\LARGE {\bf Politechnika Warszawska}}\\
+            \vspace{0.4cm}
+            \leftskip-0.9cm
+            {\LARGE {\bf \mbox{Wydział Elektroniki i Technik Informacyjnych}}}\\
+            \vspace{0.2cm}
+            {\LARGE {\bf \mbox{Instytut Automatyki i Informatyki Stosowanej}}}\\
+            
+            \vspace{5cm}
+            \leftskip1.9cm
+			{\bf \Huge \mbox{Systemy operacyjne} \vskip 0.1cm}
+		\end{center}
+		\vspace{0.1cm}
+
+		\begin{center}
+			{\bf \LARGE \@title}
+		\end{center}
+
+		\vspace{10cm}
+		\begin{paracol}{2}
+			\addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+			\subsection*{Zdający:}
+			\bf{ \Large{ \noindent\@author \par}}
+			\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
+
+			\switchcolumn \addtocontents{toc}{\protect\setcounter{tocdepth}{1}}
+			\subsection*{Prowadzący:}
+			\bf{\Large{\noindent mgr. inż. Aleksander \\ Pruszkowski}}
+			\addtocontents{toc}{\protect\setcounter{tocdepth}{2}}
+
+		\end{paracol}
+		\vspace*{\stretch{6}}
+		\begin{center}
+			\bf{\large{Warszawa, \@date\vskip 0.1cm}}
+		\end{center}
+	\end{titlepage}
+}
+\makeatother
+\maketitle
+
+\tableofcontents
+
+\chapter{Treść zadania}
+\section{Cel ćwiczenia}
+Należy napisać w środowisku systemu Minix program w języku C (oraz skrypt
+demonstrujący wykorzystanie tego programu) realizujący podstawowe funkcje
+systemu plików.
+
+\section{Funkcje programu} 
+System plików należy zorganizowaæ w dużym pliku o zadanej wielkości, który
+będzie "wirtualnym dyskiem". Program powinien tworzyć dysk wirtualny, oraz
+dokonywać zapisów i odczytów w celu zrealizowania podstawowych operacji na
+dysku, związanych z zarządzaniem katalogiem, alokacją plików oraz
+utrzymywaniem unikalności nazw.
+
+\section{Zadanie do zrealizowania}
+W pliku na dysku należy zorganizować system plików z jednopoziomowym
+katalogiem.  Elementem katalogu jest opis pliku, zawierający co najmniej
+nazwę, wielkość i sposób rozmieszczenia pliku na wirtualnym dysku. Należy
+zaimplementowaæ następujące operacje, dostępne dla użytkownika programu:
+
+\begin{enumerate}
+    \item tworzenie wirtualnego dysku
+    \item kopiowanie pliku z dysku systemu Minix na dysk wirtualny
+    \item wyświetlanie katalogu dysku wirtualnego
+    \item usuwanie pliku z wirtualnego dysku
+    \item usuwanie wirtualnego dysku
+    \item wyświetlenie zestawienia z aktualną mapą zajętości wirtualnego dysku -
+    czyli listy kolejnych obszarów wirtualnego dysku z opisem: adres, typ
+    obszaru, rozmiar, stan (np. dla bloków danych: wolny/zajęty)
+\end{enumerate}
+
+Program ma kontrolować wielkość dostępnego miejsca na wirtualnym dysku i
+pojemność katalogu, reagować na próby przekroczenia tych wielkości. \\
+\\
+\indent{} Nie trzeba realizować funkcji otwierania pliku ani czytania/pisania
+fragmentów pliku.\\
+
+\indent{} Nie trzeba realizować funkcji związanych z współbieżnym dostępem. Zakłada
+się dostęp sekwencyjny i wyłączny do wirtualnego dysku.\\
+\\
+\indent{} Należy przygotować demonstrację (zgrupowanie serii poleceń w postaci skryptu
+interpretera sh) prezentującą słabe i silne strony przyjętego rozwiązania w
+kontekście ewentualnych zewnętrznej i wewnętrznej fragmentacji.   
+
+\chapter{Propozycja rozwiązania}
+\section{System plików}
+System plików stworzę zgodnie z założeniami VSFS (Very Simple File System), przedstawionymi
+w rozdziale 40 książki \emph{Operating Systems: Three Easy Pieces}, której autorami są  Remzi H. Arpaci-Dusseau 
+i Andrea C. Arpaci-Dusseau.  
+
+\subsection{Wielkość i podział na bloki}
+Tworzony system plików będzie stworzony na wirtualnym dysku o pojemności 256kB. Zostanie on podzielony na bloki o 
+rozmiarze 4kB, co daje nam 64 bloki.
+
+\subsection{Podział funkcjonalny systemu plików}
+
+\subsubsection{User data}
+Zdecydowaną większość systemu plików będzie stanowiło miejsce na pliki użytkownika. Na tą funkcjonalność przeznaczę 56 
+bloków, z czego pierwszy blok user data będzie miał numer 8. 
+
+\subsubsection{iNode table}
+Bloki od 3 do 7 zostaną przeznaczone na tablicę struktur \texttt{iNode} (po polsku i-węzły). 
+Każdy iNode przechowuję informację o pliku takie
+jak jego nazwa, prawa dostępu, data ostatniego dostępu, data ostatniej modyfikacji i przede wszystkim wskaźnik/wskaźniki na block w regionie user data 
+w którym znajduje się zawartość pliku. Sposób implementacji wskaźników może być różny. Najprostszą metodą jest przechowywanie jednego wskaźnika
+w strukturze iNode na początek pliku i jeśli plik jest większy niż 
+jeden blok to wskaźnik na następny blok umieszczać na końcu tego bloku. Na takie też prymitywne rozwiązanie planuje się
+zdecydować. Wielkość iNodów dobiorę tak aby mogło ich być więcej niż bloków data. 
+
+\subsubsection{Mapy zajętości bloków}
+Bloki 1 i 2 przeznaczę na mapy zajętości tablicy iNodów oraz obszaru user data. Zrealizuję ją za pomocą prostych map bitowych w której
+bit ustawiony będzie oznaczał zajętość danego bloku a nieustawiony blok wolny.
+
+\subsubsection{Superblock}
+Na pozycji 0 znajdzie się struktura super bloku. Będzie ona opisem funkcjonalnym całego systemu plików. Przechowywać będzie
+informację o liczbie struktur iNode, liczbie bloków danych. Dodatkowo, w strukturze znajdzie się wskaźnik na początek 
+tablicy iNodów oraz początek sekcji danych, a także o rozmiarach poszczególnych struktur.  
+
+\chapter{Program}
+\section{Projekt programu}
+Tworzenie nowego systemu plików oraz dostęp do niego będzie realizował program \texttt{fs}. Będzie on realizował 
+wszystkie wymienione funkcjonalności opisane w rozdziale pierwszym. Aby ułatwić pisanie skryptów testowych,
+z narzędzia będzie korzystało się podobnie jak z programów typu \texttt{git}, tj. na podstawie argumentu będzie wykonywane polecenie 
+na systemie plików a następnie zakończy pracę.  
+
+\subsection{Implementacja programu}
+Program zostanie w całości napisany w języku C. 
+
+\subsection{Główne funkcjonalności}
+Narzędzie będzie realizowało następujące funkcjonalności:
+
+\begin{itemize}
+    \item tworzenie i inicjalizacja wirtualnego dysku w aktualnej lokalizacji
+    \item kopiowanie podanego pliku z dysku systemu Minix na dysk wirtualny z uwzględnieniem dostępnej pojemności 
+    \item wyświetlanie zawartości katalogu dysku wirtualnego
+    \item wyświetlanie zawartości podanego pliku
+    \item edycja wybranego pliku 
+    \item usuwanie wskazanego pliku z wirtualnego dysku
+    \item usuwanie całego wirtualnego dysku
+    \item wyświetlenie zestawienia z aktualną mapą zajętości wirtualnego dysku -
+    czyli listy kolejnych obszarów wirtualnego dysku z opisem: adres, typ
+    obszaru, rozmiar, stan (np. dla bloków danych: wolny/zajęty)
+\end{itemize}
+
+\chapter{Testowanie rozwiązania}
+\section{Realizacja testów}
+Testowanie rozwiązania zostanie przeprowadzone w sposób pół 
+automatyczny za pomocą specjalnie przygotowanych skryptów \texttt{sh}. 
+
+\section{Testowane funkcjonalności}
+
+\subsection{Tworzenie i usuwanie dysku wirtualnego}
+Test powinien sprawdzać czy narzędzie poprawnie tworzy wirtualny dysk o
+zadanym wcześniej rozmiarze. Po stwierdzeniu poprawności kreacji dysku i jego 
+inicjalizacji, dysk zostanie usunięty.
+
+\subsection{Tworzenie i usuwanie plików}
+Testy powinny również mieć możliwość sprawdzenia poprawności tworzenia plików i ich usuwania. W 
+teście zostanie utworzonych kilkadziesiąt plików, celem sprawdzenia zachowania systemu przy przekroczeniu
+maksymalnej liczby plików w systemie. Test pozwoli również na sprawdzenie jak zwalniane są bloki pamięci
+dyskowej.
+
+\subsection{Pisanie i czytanie}
+Ważnym testem będzie sprawdzanie poprawności pisania do plików poprzez narzędzie lub kopiowanie plików z systemu MINIX. 
+Poprawność testu zostanie stwierdzona poprzez odczytanie i porównanie zapisanej zawartości z oryginalną.
+Ważnym aspektem do przetestowania będzie zachowanie systemu w przypadku zwiększenia rozmiaru pliku już utworzonego
+w taki sposób że przestanie on się mieścić w oryginalnej ilości bloków, którą na początku zaalokował (tak zwane pisanie z alokacją).  
+
+\subsection{Parametry last-accessed, last-modified}
+Każda operacja powinna skutecznie modyfikować parametry pliku. Test powinien za pomocą narzędzia sprawdzać daty ostatniego
+dostępu i ostatniej modyfikacji pliku za pomocą prostych operacji porównania. 
+
+\subsection{Prezentacja zjawiska fragmentacji}
+Test powinien alokować miejsce na kilka dużych (zajmujących kilka bloków) i kilka małych plików, następnie usunąć część z nich 
+i znowu stworzyć kilka dużych plików tak aby zaprezentować jak dany system plików radzi sobie ze zjawiskiem fragmentacji 
+(z powodu wybranego sposóbu implementacji systemu plików, spodziewam się beznadziejnych wyników).
+
+\end{document}
