@@ -48,9 +48,8 @@ int touch(char* name){
     // find free iNode 
     for(int i = 0; i < fs_sb.iNodesNum; i++){
         if(iNodeBitmap[i] == '\0'){
-            
 
-            //iNodeTable[i].startingBlock = fs_sb.dataBlockOffset + i;
+            //create iNode
             iNodeTable[i].isValid = 0xFF;
             iNodeTable[i].accessRights = 0x07;
             iNodeTable[i].size = 0;
@@ -58,27 +57,21 @@ int touch(char* name){
             time(&now);
             iNodeTable[i].lastAccessed = now;
             iNodeTable[i].lastModified = now;
-            memcpy(iNodeTable[i].name, name, strlen(name));
-            //fs_buffer[fs_sb.iNodeOccupancyBitmapOffset*fs_sb.blockSize + i] = 0xFF;           
-            //memcpy(&fs_buffer[fs_sb.blockSize*fs_sb.iNodesOffset + i*fs_sb.iNodeSize],
-            //    &iNode,
-            //    sizeof(FS_iNode));
+            strcpy(iNodeTable[i].name, name);
+
             fp = fopen(FS_NAME, "r+b");
             if(!fp) {
                 printf("No file system existing!\n");
                 return NOFSYSTEMEXISTING;
             }
 
-            printf("Bitmap %p\n", fs_sb.iNodeOccupancyBitmapOffset*fs_sb.blockSize + i*sizeof(char));
             fseek(fp, fs_sb.iNodeOccupancyBitmapOffset*fs_sb.blockSize + i*sizeof(char), SEEK_SET);
             fwrite(&OCCUPIED, sizeof(char), 1, fp); 
 
-            //write iNode
-            printf("iNode %p\n", fs_sb.iNodesOffset*fs_sb.blockSize + i*fs_sb.iNodeSize);
             fseek(fp, fs_sb.iNodesOffset*fs_sb.blockSize + i*fs_sb.iNodeSize, SEEK_SET);
             fwrite(iNodeTable+i, fs_sb.iNodeSize, 1, fp);
+            
             fflush(fp);
-
             fclose(fp);
             return 0;
         }

@@ -5,7 +5,6 @@
 
 int cp(char* name){
     FILE *fp, *cp_src;
-    char fs_buffer[FS_SIZE];
     const char OCCUPIED = 0xff;
     
     FS_Superblock fs_sb;
