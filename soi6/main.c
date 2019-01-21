@@ -6,7 +6,7 @@
 int main(int argc, char* argv[]){
     if(argc < 2){
         printf("Please provide argument\n");
-        return -1;
+        return INSUFFICIENTARGS;
     } 
 
     if(strcmp(argv[1], "mkfs") == 0){
@@ -22,7 +22,11 @@ int main(int argc, char* argv[]){
     }
 
     if(strcmp(argv[1], "cp") == 0){
-        return cp();
+        if(argc < 3) {
+            printf("Argument missing.\n");
+            return INSUFFICIENTARGS;
+        }
+        return cp(argv[2]);
     }
 
     if(strcmp(argv[1], "rmfs") == 0){
@@ -33,7 +37,14 @@ int main(int argc, char* argv[]){
         return fsinfo();
     }
 
-    printf("Show help here\n");
+    if(strcmp(argv[1], "touch") == 0){
+        if(argc < 3) {
+            printf("Argument missing.\n");
+            return INSUFFICIENTARGS;
+        }
+        return touch(argv[2]);
+    }
 
-    return -1;
+    printf("Incorrect argument.\n");
+    return INCORRECTARGUMENT;
 }

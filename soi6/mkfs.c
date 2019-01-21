@@ -10,11 +10,15 @@ int mkfs(){
     if(fp){
         printf("Filesystem already exists!\n");
         fclose(fp);
-        return -1;
+        return FSYSALREADYEXISTS;
     }
 
     char nullSign = '\0';
     fp = fopen(FS_NAME, "a+b");
+    if(!fp) {
+        printf("No file system existing!\n");
+        return COULDNTCREATEFSYS;
+    }
     for(int i = 0; i < FS_SIZE; i++){
         fwrite(&nullSign, sizeof(char), 1, fp);
     }
@@ -35,6 +39,10 @@ int mkfs(){
     fs_sb.dataOccupancyBitmapOffset = 2;
 
     fp = fopen(FS_NAME, "r+b");
+    if(!fp) {
+        printf("No file system existing!\n");
+        return COULDNTCREATEFSYS;
+    }
     fwrite(&fs_sb, sizeof(FS_Superblock), 1, fp);
     fclose(fp);
 
@@ -50,6 +58,10 @@ int mkfs(){
 
     char fs_buffer[FS_SIZE];
     fp = fopen(FS_NAME, "r+b");
+    if(!fp) {
+        printf("No file system existing!\n");
+        return COULDNTCREATEFSYS;
+    }
     fread(fs_buffer, FS_SIZE, 1, fp);
     fclose(fp);
 
@@ -62,6 +74,10 @@ int mkfs(){
         sizeof(FS_dataOccupancyBitmap));
 
     fp = fopen(FS_NAME, "wb");
+    if(!fp) {
+        printf("No file system existing!\n");
+        return COULDNTCREATEFSYS;
+    }
     fwrite(fs_buffer, FS_SIZE, 1, fp);
     fclose(fp);
 

@@ -1,7 +1,7 @@
 CC = gcc
 
-all: main.o mkfs.o ls.o rm.o cp.o rmfs.o fsinfo.o
-	$(CC) main.o mkfs.o ls.o rm.o cp.o rmfs.o fsinfo.o -o fs
+all: main.o mkfs.o ls.o rm.o cp.o rmfs.o fsinfo.o touch.o
+	$(CC) main.o mkfs.o ls.o rm.o cp.o rmfs.o fsinfo.o touch.o -o fs
 
 main.o: main.c 
 	$(CC) -c main.c -o main.o
@@ -23,6 +23,9 @@ rmfs.o: rmfs.c
 
 fsinfo.o: fsinfo.c 
 	$(CC) -c fsinfo.c -o fsinfo.o
+
+touch.o: touch.c 
+	$(CC) -c touch.c -o touch.o
 
 clean:
 	rm *.o fs

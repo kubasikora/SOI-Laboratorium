@@ -12,5 +12,5 @@ int rmfs(){
         return 0;
     }
     printf("No filesystem exists!\n");
-    return -1;
+    return NOFSYSTEMEXISTING;
 }
