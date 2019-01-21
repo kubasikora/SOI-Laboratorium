@@ -13,12 +13,32 @@ int main(int argc, char* argv[]){
         return mkfs();
     }
 
+    if(strcmp(argv[1], "cat") == 0){ // TO DO
+        if(argc < 3) {
+            printf("Argument missing.\n");
+            return INSUFFICIENTARGS;
+        }
+        return cat(argv[2]);
+    }
+
     if(strcmp(argv[1], "ls") == 0){
         return ls();
     }
 
-    if(strcmp(argv[1], "rm") == 0){
-        return rm();
+    if(strcmp(argv[1], "load") == 0){ // TO DO
+        if(argc < 3) {
+            printf("Argument missing.\n");
+            return INSUFFICIENTARGS;
+        }
+        return rm(argv[2]);
+    }
+
+    if(strcmp(argv[1], "rm") == 0){ // TO DO
+        if(argc < 3) {
+            printf("Argument missing.\n");
+            return INSUFFICIENTARGS;
+        }
+        return rm(argv[2]);
     }
 
     if(strcmp(argv[1], "cp") == 0){

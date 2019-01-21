@@ -50,7 +50,6 @@ int touch(char* name){
         if(iNodeBitmap[i] == '\0'){
 
             //create iNode
-            iNodeTable[i].isValid = 0xFF;
             iNodeTable[i].accessRights = 0x07;
             iNodeTable[i].size = 0;
             time_t now;

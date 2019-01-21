@@ -11,11 +11,13 @@
 
 int mkfs();
 int ls();
-int rm();
-int cp();
+int rm(char* name);
+int cp(char* name);
 int rmfs();
 int fsinfo();
 int touch(char* name);
+int load(char* name);
+int cat(char* name);
 
 typedef struct FS_Superblock {
     int blockSize;
@@ -42,7 +44,6 @@ typedef struct FS_dataOccupancyBitmap {
 } FS_dataOccupancyBitmap; 
 
 typedef struct FS_iNode {
-    char isValid;
     int startingBlock;
     char accessRights;
     int size;
@@ -60,5 +61,6 @@ typedef struct FS_iNode {
 #define INSUFFICIENTARGS -6
 #define INCORRECTARGUMENT -7
 #define TARGETFILENOTEXISTING -8
+#define FILENOTEXISTINGINFS -9
 
 #endif //__SOI_FS_H__

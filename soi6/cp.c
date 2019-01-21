@@ -85,7 +85,6 @@ int cp(char* name){
                     }
 
                     //save iNode here
-                    iNodeTable[i].isValid = 0xFF;
                     iNodeTable[i].startingBlock = fs_sb.dataBlockOffset + j;
                     iNodeTable[i].accessRights = 0x07;
                     iNodeTable[i].size = fileSize;
