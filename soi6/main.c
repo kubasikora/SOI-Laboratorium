@@ -30,7 +30,7 @@ int main(int argc, char* argv[]){
             printf("Argument missing.\n");
             return INSUFFICIENTARGS;
         }
-        return rm(argv[2]);
+        return load(argv[2]);
     }
 
     if(strcmp(argv[1], "rm") == 0){ // TO DO
