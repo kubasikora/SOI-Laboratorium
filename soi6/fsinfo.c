@@ -42,30 +42,30 @@ int fsinfo(){
     int iNodeCounter = 0;
     int realSpaceUsage = 0;
     for(int i = 0; i < fs_sb.iNodesNum; i++){
-        if(iNodeBitmap[i] != NULL){
+        if(iNodeBitmap[i] != 0x00){
             ++iNodeCounter;
             realSpaceUsage += iNodeTable[i].size;
         }
     }
 
-    printf("iNode table starts at %p and its occupied in %.2f%%\n", fs_sb.iNodesOffset*fs_sb.blockSize, 100*(float)iNodeCounter/(float)fs_sb.iNodesNum);
+    printf("iNode table starts at 0x%x and its occupied in %.2f%%\n", fs_sb.iNodesOffset*fs_sb.blockSize, 100*(float)iNodeCounter/(float)fs_sb.iNodesNum);
     printf("File system stores %d %s\n", iNodeCounter, iNodeCounter == 1 ? "file" : "files");
     printf("iNode bitmap: \n");
     for(int i = 0; i < fs_sb.iNodesNum; i++){
-        printf("|%c", iNodeBitmap[i] == NULL ? 'O' : 'X');
+        printf("|%c", iNodeBitmap[i] == 0x00 ? 'O' : 'X');
     }
     printf("|\n");
 
     int dataBlockCounter = 0;
     for(int i = 0; i < fs_sb.dataBlockNum; i++){
-        if(dataBitmap[i] != NULL) ++dataBlockCounter;
+        if(dataBitmap[i] != 0x00) ++dataBlockCounter;
     }
 
-    printf("Data space starts at %p and its occupied in %.2f%%\n", fs_sb.dataBlockOffset*fs_sb.blockSize, 100*(float)dataBlockCounter/(float)fs_sb.dataBlockNum);
+    printf("Data space starts at 0x%x and its occupied in %.2f%%\n", fs_sb.dataBlockOffset*fs_sb.blockSize, 100*(float)dataBlockCounter/(float)fs_sb.dataBlockNum);
     printf("Real data space usage is equal %.2f%% (%d bytes)\n", 100*(float)realSpaceUsage/((float)fs_sb.dataBlockNum*fs_sb.blockSize), realSpaceUsage);
     printf("Data bitmap: \n");
     for(int i = 0; i < fs_sb.dataBlockNum; i++){
-        printf("|%c", dataBitmap[i] == NULL ? 'O' : 'X');
+        printf("|%c", dataBitmap[i] == 0x00 ? 'O' : 'X');
     }
     printf("|\n");
 
