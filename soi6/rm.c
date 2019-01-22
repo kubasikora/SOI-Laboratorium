@@ -45,9 +45,7 @@ int rm(char* name){
     //check if file with this name already exists
     for(int i = 0; i < fs_sb.iNodesNum; i++){
         if(iNodeBitmap[i] != '\0'){ 
-            printf("%s\n", iNodeTable[i].name);
             if(strcmp(iNodeTable[i].name, name) == 0){
-                printf("removing...\n");
                 //lock inode
 
                 int bitmapBlockStart = iNodeTable[i].startingBlock - fs_sb.dataBlockOffset;
